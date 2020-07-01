@@ -5,7 +5,15 @@ module Tilerender
 	class TCP < Base
 		private macro send_command_to_sockets( bytes )
 			return unless @visible
-			@connections.each &.write( {{ bytes }} )
+
+			@connections.each{|connection|
+				begin
+					connection.write( {{ bytes }} )
+				rescue IO::Error
+					connection.close
+					@connections.delete connection
+				end
+			}
 		end
 
 		private macro socket_byte_command( command )
@@ -42,6 +50,18 @@ module Tilerender
 			{{ bytes }}[ 4 ] = ( {{ y }} & 0xff ).to_u8
 		end
 
+		private macro dimension_bytes
+			bytes = Bytes.new 5
+			bytes[ 0 ] = Command::UpdateDimensions.value
+
+			{ @width, @height }.each_with_index{|coordinate, index|
+				bytes[ index * 2 + 1 ] = ( ( coordinate >> 8 ) & 0xff ).to_u8
+				bytes[ index * 2 + 2 ] = ( coordinate & 0xff ).to_u8
+			}
+
+			bytes
+		end
+
 		enum Command : UInt8
 			Reset
 			Clear
@@ -54,9 +74,15 @@ module Tilerender
 		@server : TCPServer
 		@connections : Array( TCPSocket )
 
+		@width : UInt16
+		@height : UInt16
+
 		def initialize( port : Int32 = ENV[ "INTERFACE_PORT" ].to_i, wait_first_connection : Bool = true )
 			@server = TCPServer.new port
 			@connections = Array( TCPSocket ).new
+
+			@width = 0
+			@height = 0
 
 			if wait_first_connection && ( subject = @server.accept? )
 				client = subject.not_nil!
@@ -73,18 +99,9 @@ module Tilerender
 			end
 		end
 
-		def dimensions( width : UInt16, height : UInt16 ) : Void
+		def dimensions( @width, @height ) : Void
 			return unless @visible
-
-			bytes = Bytes.new 5
-			bytes[ 0 ] = Command::UpdateDimensions.value
-
-			{ width, height }.each_with_index{|coordinate, index|
-				bytes[ index * 2 + 1 ] = ( ( coordinate >> 8 ) & 0xff ).to_u8
-				bytes[ index * 2 + 2 ] = ( coordinate & 0xff ).to_u8
-			}
-
-			send_command_to_sockets bytes
+			send_command_to_sockets dimension_bytes
 		end
 
 		def reset : Void
@@ -135,7 +152,10 @@ module Tilerender
 		end
 
 		private def handle_client( client : TCPSocket ) : Void
+			client.write dimension_bytes if @width > 0 && @height > 0
 			client.gets 1 # Waiting for transmit only, do not receive any byte: in any case disconnect the client
+		rescue IO::Error # TODO: When server closes raises this error on trying read from socket
+		ensure
 			client.close
 			@connections.delete client
 		end
