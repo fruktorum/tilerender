@@ -395,4 +395,31 @@ describe Tilerender::CommandLine do
 			interface.stdout_buffer.should eq( "\x1b[2;3H\e[48;5;196m \e[0m\e[3;4H\n" )
 		end
 	end
+
+	describe "#hide" do
+		it "disables output" do
+			interface = create_interface
+			interface.hide
+			interface.background 0, 0, :red
+			interface.stdout_buffer.should be_empty
+			interface.flush
+			interface.stdout_buffer.should be_empty
+		end
+	end
+
+	describe "#show" do
+		it "enables output" do
+			interface = create_interface
+			interface.hide
+			interface.background 0, 0, :red
+			interface.stdout_buffer.should be_empty
+			interface.show
+			interface.flush
+			interface.stdout_buffer.should be_empty
+			interface.background 0, 0, :red
+			interface.stdout_buffer.should be_empty
+			interface.flush
+			interface.stdout_buffer.should_not be_empty
+		end
+	end
 end

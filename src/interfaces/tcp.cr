@@ -4,6 +4,7 @@ module Tilerender
 
 	class TCP < Base
 		private macro send_command_to_sockets( bytes )
+			return unless @visible
 			@connections.each &.write( {{ bytes }} )
 		end
 
@@ -57,16 +58,24 @@ module Tilerender
 			@server = TCPServer.new port
 			@connections = Array( TCPSocket ).new
 
-			spawn handle_client client if wait_first_connection && ( client = @server.accept? )
+			if wait_first_connection && ( subject = @server.accept? )
+				client = subject.not_nil!
+				@connections << client.not_nil!
+				spawn handle_client client
+			end
 
 			spawn do
-				while client = @server.accept?
-					spawn handle_client client.not_nil!
+				while subject = @server.accept?
+					client = subject.not_nil!
+					@connections << client.not_nil!
+					spawn handle_client client
 				end
 			end
 		end
 
 		def dimensions( width : UInt16, height : UInt16 ) : Void
+			return unless @visible
+
 			bytes = Bytes.new 5
 			bytes[ 0 ] = Command::UpdateDimensions.value
 
@@ -104,14 +113,18 @@ module Tilerender
 		end
 
 		def flush : Void
+			# TODO: Make some buffer before
 		end
 
 		def close_connection : Void
 			@server.close
+			@connections.each &.close
 			@connections.clear
 		end
 
 		private def socket_colorize_command( command : Command, x : UInt16, y : UInt16, color : Color ) : Void
+			return unless @visible
+
 			bytes = Bytes.new 8
 
 			bytes[ 0 ] = command.value
@@ -122,7 +135,6 @@ module Tilerender
 		end
 
 		private def handle_client( client : TCPSocket ) : Void
-			@connections << client
 			client.gets 1 # Waiting for transmit only, do not receive any byte: in any case disconnect the client
 			client.close
 			@connections.delete client
