@@ -1,0 +1,15 @@
+/bin/
+/docs/
+/lib/
+/.shards/
+
+core
+Dockerfile
+docker-compose.yml
+shard.lock
+
+/test.cr
+
+*.dwarf
+
+!**/.keep

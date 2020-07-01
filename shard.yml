@@ -1,0 +1,8 @@
+name: tilerender
+version: 0.1.0
+crystal: 1.0.0-dev
+
+authors:
+  - SlayerShadow <gawfast@gmail.com>
+
+license: MIT
