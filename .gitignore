@@ -7,9 +7,12 @@ core
 Dockerfile
 docker-compose.yml
 shard.lock
+Thumbs.db
 
 /test.cr
 
 *.dwarf
+
+.DS_Store
 
 !**/.keep
