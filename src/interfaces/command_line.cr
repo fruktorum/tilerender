@@ -4,7 +4,7 @@ module Tilerender
 		Reset = "\e[H\e[J\e[3J"
 		Clear = "\e[0m"
 
-		alias BackgroundMap = Hash( Tuple( UInt16, UInt16 ), Color )
+		alias BackgroundMap = Hash( Tuple( UInt16, UInt16 ), BaseColor )
 
 		getter width, height
 
@@ -36,7 +36,7 @@ module Tilerender
 			return unless @visible
 
 			result = String.build{|string|
-				previous_color : Color? = nil
+				previous_color : BaseColor? = nil
 
 				string << Clear << Reset
 
@@ -44,7 +44,7 @@ module Tilerender
 					@width.times{|x|
 						if color = @background[ { x, y } ]?
 							if color != previous_color
-								colorize color, string
+								colorize string, color
 								previous_color = color
 							end
 						elsif previous_color
@@ -73,7 +73,23 @@ module Tilerender
 			subject x, y, color if @visible
 		end
 
+		def background( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
+			return if x >= @width || y >= @height
+
+			color = RGBColor.new red: red, green: green, blue: blue
+			@background[ { x, y } ] = color
+
+			# This is a bug when background placed over foreground, it rewrites foreground color.
+			# Ignore it. Assume that background will always be placed before any foreground entity.
+			subject x, y, color if @visible
+		end
+
 		def foreground( x : UInt16, y : UInt16, color : Color ) : Void
+			subject x, y, color if @visible && x < @width && y < @height
+		end
+
+		def foreground( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
+			color = RGBColor.new red: red, green: green, blue: blue
 			subject x, y, color if @visible && x < @width && y < @height
 		end
 
@@ -100,7 +116,24 @@ module Tilerender
 			@visible = true
 		end
 
-		private def colorize( color : Color, io : String::Builder ) : Void
+		private def subject( x : UInt16, y : UInt16, color : Color ) : Void
+			@buffer += String.build{|string|
+				move string, x, y
+				colorize string, color
+				string << ' '
+				string << Clear unless color.empty?
+			}
+		end
+
+		private def subject( x : UInt16, y : UInt16, color : RGBColor ) : Void
+			@buffer += String.build{|string|
+				move string, x, y
+				colorize string, color
+				string << " #{ Clear }"
+			}
+		end
+
+		private def colorize( io : String::Builder, color : Color ) : Void
 			return io << Clear if color.empty?
 
 			value = case color
@@ -127,21 +160,16 @@ module Tilerender
 			io << "\e[48;5;" << value << 'm'
 		end
 
-		private def subject( x : UInt16, y : UInt16, color : Color ) : Void
-			@buffer += String.build{|string|
-				move x, y, string
-				colorize color, string
-				string << ' '
-				string << Clear unless color.empty?
-			}
+		private def colorize( io : String::Builder, color : RGBColor ) : Void
+			io << "\e[48;2;#{ color.red };#{ color.green };#{ color.blue }m"
 		end
 
-		private def move( x : UInt16, y : UInt16, io : String::Builder ) : Void
+		private def move( io : String::Builder, x : UInt16, y : UInt16 ) : Void
 			io << "\x1b[#{ y + 1 };#{ x + 1 }H"
 		end
 
 		private def line( io : String::Builder ) : Void
-			move @width, @height, io
+			move io, @width, @height
 			io << '\n'
 		end
 	end

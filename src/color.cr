@@ -22,4 +22,8 @@ module Tilerender
 		Yellow
 	end
 
+	record RGBColor, red : UInt8, green : UInt8, blue : UInt8
+
+	alias BaseColor = Color | RGBColor
+
 end

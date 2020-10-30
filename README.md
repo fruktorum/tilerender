@@ -1,6 +1,6 @@
 # Tile Render
 
-Tilerender - a simple graphics interface. It supports two different interfaces: command-line and sockets.
+Tilerender - a simple graphics interface to display colorized squares on command line or via sockets.
 
 ## Installation
 
@@ -15,6 +15,8 @@ Tilerender - a simple graphics interface. It supports two different interfaces: 
 2. Run `shards install`
 
 ## Usage
+
+_Please note that all input is buffered and method `flush` should be called to draw the output._
 
 Core dependencies:
 
@@ -41,9 +43,24 @@ Basic usage:
 ```crystal
 interface.dimensions 3_u16, 2_u16 # Set the field dimenstions to 3x2 (width x height)
 interface.reset # Clear colors of the field
+
+# It supports two variants of rendering:
+# Via Color enum (see below):
 interface.background 0, 0, Tilerender::Color::Red # Fill background color of tile (x: 0, y: 0) with Red color
 interface.foreground 1, 0, Tilerender::Color::Blue # Fill foreground color of tile (x: 1, y: 0) with Blue color
+
+# Via RGB color base:
+interface.background 0, 0, 255, 0, 0 # Fill background color of tile (x: 0, y: 0) with Red color
+interface.foreground 1, 0, 0, 255, 0 # Fill foreground color of tile (x: 1, y: 0) with Blue color
+
+# Now draw it:
 interface.flush # Render to output
+```
+
+It is possible to use symbols instead of enums (until Crystal itself changes something):
+
+```crystal
+interface.background 0, 0, :red # Fill background color of tile (x: 0, y: 0) with Red color
 ```
 
 ### Environment variables
@@ -68,6 +85,8 @@ interface.reset # => Tile (0, 0) has Red (background) color
 
 ### Supported colors
 
+`Tilerender::Color` is the `enum` that supports restricted amount of colors:
+
 * Black
 * Blue
 * Cyan
@@ -86,11 +105,13 @@ interface.reset # => Tile (0, 0) has Red (background) color
 * White
 * Yellow
 
-TODO: Make available full RGB palette
-
 ## Development
 
-`docker-compose run --rm --service-ports dev` - launch dev Crystal environment
+It is recommended to use Docker and latest Crystal language compilation.
+
+1. `cp Dockerfile.sample Dockerfile`
+2. Change 1st line in Dockerfile to actual Crystal image
+3. `docker-compose run --rm --service-ports dev` - launch dev Crystal environment
 
 ## Contributing
 

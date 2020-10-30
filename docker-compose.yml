@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  dev:
+    image: tilerender
+    build: .
+    ports: [ '3248:3248' ]
+    networks: [ websockify ]
+    volumes: [ '.:/app' ]
+    environment:
+      INTERFACE_PORT: 3248
+    logging:
+      driver: none
+
+networks:
+  websockify:
+    name: websockify-proxy
+    external: true

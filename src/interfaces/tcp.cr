@@ -116,8 +116,16 @@ module Tilerender
 			socket_colorize_command Command::SetBackground, x, y, color
 		end
 
+		def background( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
+			socket_colorize_command Command::SetBackground, x, y, red, green, blue
+		end
+
 		def foreground( x : UInt16, y : UInt16, color : Color ) : Void
 			socket_colorize_command Command::SetForeground, x, y, color
+		end
+
+		def foreground( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
+			socket_colorize_command Command::SetForeground, x, y, red, green, blue
 		end
 
 		def empty( x : UInt16, y : UInt16 ) : Void
@@ -146,6 +154,17 @@ module Tilerender
 
 			bytes[ 0 ] = command.value
 			bytes[ 5 ], bytes[ 6 ], bytes[ 7 ] = pick_color color
+			set_coordinates bytes, x, y
+
+			send_command_to_sockets bytes
+		end
+
+		private def socket_colorize_command( command : Command, x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
+			return unless @visible
+
+			bytes = Bytes.new 8
+
+			bytes[ 0 ], bytes[ 5 ], bytes[ 6 ], bytes[ 7 ] = command.value, red, green, blue
 			set_coordinates bytes, x, y
 
 			send_command_to_sockets bytes

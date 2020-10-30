@@ -5,7 +5,6 @@
 
 core
 Dockerfile
-docker-compose.yml
 shard.lock
 Thumbs.db
 
