@@ -1,6 +1,6 @@
-# Tile Render
+# TileRender
 
-Tilerender - a simple graphics interface to display colorized squares on command line or via sockets.
+Tilerender: a simple graphics interface to display colorized squares via command-line or sockets.
 
 ## Installation
 
@@ -16,7 +16,7 @@ Tilerender - a simple graphics interface to display colorized squares on command
 
 ## Usage
 
-_Please note that all input is buffered and method `flush` should be called to draw the output._
+_Note: for command-line all input is buffered and method `flush` should be called to draw the output._
 
 Core dependencies:
 
@@ -35,10 +35,13 @@ require "tilerender"
 
    ```crystal
    require "tilerender/interfaces/tcp"
-   interface = Tilerender::TCP.new
+   interface = Tilerender::TCP.new port: 3248, wait_first_connection: true
    ```
 
-Basic usage:
+   * `port` - a port where the TCP server will be launched (default: `ENV[ "INTERFACE_PORT" ]`)
+   * `wait_first_connection` - if true, waits for the first connection and prevents rendering to the void (default: `true`)
+
+### Basic usage:
 
 ```crystal
 interface.dimensions 3_u16, 2_u16 # Set the field dimenstions to 3x2 (width x height)
@@ -82,6 +85,23 @@ interface.background 0, 0, Tilerender::Color::Red # => Tile (0, 0) still has Blu
 # Clear field
 interface.reset # => Tile (0, 0) has Red (background) color
 ```
+
+### Public interface
+
+* `dimensions( width : UInt16, height : UInt16 ) : Void` - set grid dimensions to `width` horizontally and `height` vertically
+* `background( x : UInt16, y : UInt16, color : Color ) : Void` - set background color of `(x, y)` to one of `Color`
+* `background( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void` - set background of `(x, y)` to the RGB color
+* `foreground( x : UInt16, y : UInt16, color : Color ) : Void` - set foreground color of `(x, y)` to one of `Color`
+* `foreground( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void` - set foreground of `(x, y)` to the RGB color
+* `empty( x : UInt16, y : UInt16 ) : Void` - clear the cell placed on `(x, y)` (if background is set, fills the cell by that color)
+* `clear : Void` - clear field of foreground (if specific cell has background, it will be placed, else - the cell's color will be removed)
+* `reset : Void` - reset all field (remove background and foreground for all cells)
+* `flush : Void` - print buffer to output (or write it to socket if TCP tilerender is in use) (currently TCP variant is unbuffered)
+* `hide : Void` - disable output (calling `flush` resets buffer, even if it should not display something)
+* `show : Void` - enable output
+* `visible : Bool` - returns `true` if output should be rendered (if `hide` was not called) (default: `true`)
+
+Commands `reset` and `clear` for command-line renderer prints result immediately. To prevent this please hide Tilerender with `hide`.
 
 ### Supported colors
 
