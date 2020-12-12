@@ -56,9 +56,11 @@ describe Tilerender::TCP do
 	describe "#background" do
 		context "with Color" do
 			it "sends background command" do
-				interface = Tilerender::TCP.new 9999, wait_first_connection: false
+				interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 32176_u16, 260_u16 )
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
+
+				client.read Bytes.new( 5 )
 
 				interface.background 32175, 259, :red
 
@@ -73,9 +75,11 @@ describe Tilerender::TCP do
 
 		context "with RGBColor" do
 			it "sends background command" do
-				interface = Tilerender::TCP.new 9999, wait_first_connection: false
+				interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 32176_u16, 260_u16 )
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
+
+				client.read Bytes.new( 5 )
 
 				interface.background 32175, 259, 12, 23, 34
 
@@ -92,9 +96,11 @@ describe Tilerender::TCP do
 	describe "#foreground" do
 		context "with Color" do
 			it "sends foreground command" do
-				interface = Tilerender::TCP.new 9999, wait_first_connection: false
+				interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 260_u16, 32176_u16 )
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
+
+				client.read Bytes.new( 5 )
 
 				interface.foreground 259, 32175, :silver
 
@@ -109,9 +115,11 @@ describe Tilerender::TCP do
 
 		context "with RGBColor" do
 			it "sends foreground command" do
-				interface = Tilerender::TCP.new 9999, wait_first_connection: false
+				interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 260_u16, 32176_u16 )
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
+
+				client.read Bytes.new( 5 )
 
 				interface.foreground 259, 32175, 25, 53, 77
 
@@ -127,9 +135,11 @@ describe Tilerender::TCP do
 
 	describe "#empty" do
 		it "sends empty command" do
-			interface = Tilerender::TCP.new 9999, wait_first_connection: false
+			interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 1753_u16, 12705_u16 )
 			client = TCPSocket.new "localhost", 9999
 			sleep 0.001 # Async wait for connections update
+
+			client.read Bytes.new( 5 )
 
 			interface.empty 1752, 12704
 
@@ -149,7 +159,7 @@ describe Tilerender::TCP do
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
 
-				interface.dimensions 23_u16, 350_u16
+				interface.dimensions 32030_u16, 350_u16
 				interface.reset
 				interface.background 15, 24, :gray
 				interface.foreground 29, 278, :magenta
@@ -159,7 +169,7 @@ describe Tilerender::TCP do
 				client.close
 				interface.close_connection
 
-				data.should eq( Bytes[ 2, 0, 23, 1, 94, 0, 3, 0, 15, 0, 24, 128, 128, 128, 4, 0, 29, 1, 22, 255, 0, 255, 8, 8, 8 ] )
+				data.should eq( Bytes[ 2, 125, 30, 1, 94, 0, 3, 0, 15, 0, 24, 128, 128, 128, 4, 0, 29, 1, 22, 255, 0, 255, 8, 8, 8 ] )
 			end
 		end
 
@@ -169,7 +179,7 @@ describe Tilerender::TCP do
 				client = TCPSocket.new "localhost", 9999
 				sleep 0.001 # Async wait for connections update
 
-				interface.dimensions 23_u16, 350_u16
+				interface.dimensions 30_u16, 350_u16
 				interface.reset
 				interface.background 15, 24, 11, 22, 33
 				interface.foreground 29, 278, 27, 89, 93
@@ -179,7 +189,7 @@ describe Tilerender::TCP do
 				client.close
 				interface.close_connection
 
-				data.should eq( Bytes[ 2, 0, 23, 1, 94, 0, 3, 0, 15, 0, 24, 11, 22, 33, 4, 0, 29, 1, 22, 27, 89, 93, 4, 4, 4 ] )
+				data.should eq( Bytes[ 2, 0, 30, 1, 94, 0, 3, 0, 15, 0, 24, 11, 22, 33, 4, 0, 29, 1, 22, 27, 89, 93, 4, 4, 4 ] )
 			end
 		end
 	end
@@ -189,7 +199,7 @@ describe Tilerender::TCP do
 			it "disables output" do
 				interface = Tilerender::TCP.new 9999, wait_first_connection: false
 				client = TCPSocket.new "localhost", 9999
-				client.read_timeout = 1
+				client.read_timeout = 0.1
 				sleep 0.001 # Async wait for connections update
 
 				interface.hide
@@ -219,7 +229,7 @@ describe Tilerender::TCP do
 			it "disables output" do
 				interface = Tilerender::TCP.new 9999, wait_first_connection: false
 				client = TCPSocket.new "localhost", 9999
-				client.read_timeout = 1
+				client.read_timeout = 0.1
 				sleep 0.001 # Async wait for connections update
 
 				interface.hide

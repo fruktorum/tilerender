@@ -1,16 +1,18 @@
-version: '3.8'
+version: '3.9'
 
 services:
   dev:
-    image: tilerender
-    build: .
+    image: tilerender:dev
+    build:
+      context: .
+      target: build
     ports: [ '3248:3248' ]
     networks: [ websockify ]
     volumes: [ '.:/app' ]
-    environment:
-      INTERFACE_PORT: 3248
     logging:
       driver: none
+    environment:
+      INTERFACE_PORT: 3248
 
 networks:
   websockify:

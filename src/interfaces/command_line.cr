@@ -26,9 +26,9 @@ module Tilerender
 		end
 
 		def reset : Void
-			print Reset if @visible
 			@buffer = ""
 			@background.clear
+			print Reset if @visible
 		end
 
 		def clear : Void
