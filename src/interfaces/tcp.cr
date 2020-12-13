@@ -78,14 +78,14 @@ module Tilerender
 
 			if wait_first_connection && ( subject = @server.accept? )
 				client = subject.not_nil!
-				@connections << client.not_nil!
+				@connections << client
 				spawn handle_client client
 			end
 
 			spawn do
 				while subject = @server.accept?
 					client = subject.not_nil!
-					@connections << client.not_nil!
+					@connections << client
 					spawn handle_client client
 				end
 			end
@@ -154,6 +154,11 @@ module Tilerender
 			@server.close
 			@connections.each &.close
 			@connections.clear
+		end
+
+		def show
+			super
+			send_command_to_sockets DIMENSION_BYTES
 		end
 
 		private def socket_colorize_command( command : Command, x : UInt16, y : UInt16, color : Color ) : Void

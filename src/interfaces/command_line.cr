@@ -108,14 +108,6 @@ module Tilerender
 			@buffer = ""
 		end
 
-		def hide : Void
-			@visible = false
-		end
-
-		def show : Void
-			@visible = true
-		end
-
 		private def subject( x : UInt16, y : UInt16, color : Color ) : Void
 			@buffer += String.build{|string|
 				move string, x, y

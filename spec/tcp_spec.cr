@@ -199,12 +199,11 @@ describe Tilerender::TCP do
 			it "disables output" do
 				interface = Tilerender::TCP.new 9999, wait_first_connection: false
 				client = TCPSocket.new "localhost", 9999
-				client.read_timeout = 0.1
 				sleep 0.001 # Async wait for connections update
 
 				interface.hide
 
-				interface.dimensions 11_u16, 0_u16
+				interface.dimensions 11_u16, 16_u16
 				interface.reset
 				interface.background 4, 15, :navy
 				interface.foreground 29, 278, :maroon
@@ -212,16 +211,12 @@ describe Tilerender::TCP do
 
 				interface.show
 
-				begin
-					byte = client.read_byte
-				rescue IO::TimeoutError
-					byte = nil
-				end
-
+				data = Bytes.new 8, 15
+				client.read data
 				client.close
 				interface.close_connection
 
-				byte.should be_nil
+				data.should eq( Bytes[ 2, 0, 11, 0, 16, 15, 15, 15 ] )
 			end
 		end
 
@@ -234,7 +229,7 @@ describe Tilerender::TCP do
 
 				interface.hide
 
-				interface.dimensions 11_u16, 0_u16
+				interface.dimensions 11_u16, 1_u16
 				interface.reset
 				interface.background 4, 15, 12, 23, 34
 				interface.foreground 29, 278, 35, 24, 11
@@ -242,16 +237,12 @@ describe Tilerender::TCP do
 
 				interface.show
 
-				begin
-					byte = client.read_byte
-				rescue IO::TimeoutError
-					byte = nil
-				end
-
+				data = Bytes.new 8, 15
+				client.read data
 				client.close
 				interface.close_connection
 
-				byte.should be_nil
+				data.should eq( Bytes[ 2, 0, 11, 0, 1, 15, 15, 15 ] )
 			end
 		end
 	end
@@ -268,12 +259,12 @@ describe Tilerender::TCP do
 				interface.show
 				interface.background 0, 0, :orange
 
-				data = Bytes.new 10, 71
+				data = Bytes.new 15, 71
 				client.read data
 				client.close
 				interface.close_connection
 
-				data.should eq( Bytes[ 3, 0, 0, 0, 0, 255, 165, 0, 71, 71 ] )
+				data.should eq( Bytes[ 2, 0, 1, 0, 25, 3, 0, 0, 0, 0, 255, 165, 0, 71, 71 ] )
 			end
 		end
 
@@ -288,12 +279,12 @@ describe Tilerender::TCP do
 				interface.show
 				interface.background 0, 0, 43, 32, 21
 
-				data = Bytes.new 10, 11
+				data = Bytes.new 15, 11
 				client.read data
 				client.close
 				interface.close_connection
 
-				data.should eq( Bytes[ 3, 0, 0, 0, 0, 43, 32, 21, 11, 11 ] )
+				data.should eq( Bytes[ 2, 0, 1, 0, 25, 3, 0, 0, 0, 0, 43, 32, 21, 11, 11 ] )
 			end
 		end
 	end
