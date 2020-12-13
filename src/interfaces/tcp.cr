@@ -44,18 +44,6 @@ module Tilerender
 			{{ bytes }}[ 4 ] = ( {{ y }} & 0xff ).to_u8
 		end
 
-		private macro dimension_bytes
-			bytes = Bytes.new 5
-			bytes[ 0 ] = Command::UpdateDimensions.value
-
-			{ @width, @height }.each_with_index{|coordinate, index|
-				bytes[ index * 2 + 1 ] = ( ( coordinate >> 8 ) & 0xff ).to_u8
-				bytes[ index * 2 + 2 ] = ( coordinate & 0xff ).to_u8
-			}
-
-			bytes
-		end
-
 		enum Command : UInt8
 			Reset
 			Clear
@@ -66,6 +54,10 @@ module Tilerender
 		end
 
 		alias BackgroundMap = Hash( Tuple( UInt16, UInt16 ), BaseColor )
+
+		DIMENSION_BYTES = Bytes.new 5, Command::UpdateDimensions.value
+		EMPTY_BYTES = Bytes.new 5, Command::Empty.value
+		COLORIZE_BYTES = Bytes.new 8
 
 		@server : TCPServer
 		@connections : Array( TCPSocket )
@@ -101,7 +93,13 @@ module Tilerender
 
 		def dimensions( @width, @height ) : Void
 			@background.clear
-			send_command_to_sockets dimension_bytes if @visible
+
+			{ @width, @height }.each_with_index{|coordinate, index|
+				DIMENSION_BYTES[ index * 2 + 1 ] = ( ( coordinate >> 8 ) & 0xff ).to_u8
+				DIMENSION_BYTES[ index * 2 + 2 ] = ( coordinate & 0xff ).to_u8
+			}
+
+			send_command_to_sockets DIMENSION_BYTES if @visible
 		end
 
 		def reset : Void
@@ -135,13 +133,8 @@ module Tilerender
 
 		def empty( x : UInt16, y : UInt16 ) : Void
 			return if !@visible || x >= @width || y >= @height
-
-			bytes = Bytes.new 5
-
-			bytes[ 0 ] = Command::Empty.value
-			set_coordinates bytes, x, y
-
-			send_command_to_sockets bytes
+			set_coordinates EMPTY_BYTES, x, y
+			send_command_to_sockets EMPTY_BYTES
 		end
 
 		def flush : Void
@@ -164,26 +157,20 @@ module Tilerender
 		end
 
 		private def socket_colorize_command( command : Command, x : UInt16, y : UInt16, color : Color ) : Void
-			bytes = Bytes.new 8
-
-			bytes[ 0 ] = command.value
-			bytes[ 5 ], bytes[ 6 ], bytes[ 7 ] = pick_color color
-			set_coordinates bytes, x, y
-
-			send_command_to_sockets bytes
+			COLORIZE_BYTES[ 0 ] = command.value
+			COLORIZE_BYTES[ 5 ], COLORIZE_BYTES[ 6 ], COLORIZE_BYTES[ 7 ] = pick_color color
+			set_coordinates COLORIZE_BYTES, x, y
+			send_command_to_sockets COLORIZE_BYTES
 		end
 
 		private def socket_colorize_command( command : Command, x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
-			bytes = Bytes.new 8
-
-			bytes[ 0 ], bytes[ 5 ], bytes[ 6 ], bytes[ 7 ] = command.value, red, green, blue
-			set_coordinates bytes, x, y
-
-			send_command_to_sockets bytes
+			COLORIZE_BYTES[ 0 ], COLORIZE_BYTES[ 5 ], COLORIZE_BYTES[ 6 ], COLORIZE_BYTES[ 7 ] = command.value, red, green, blue
+			set_coordinates COLORIZE_BYTES, x, y
+			send_command_to_sockets COLORIZE_BYTES
 		end
 
 		private def handle_client( client : TCPSocket ) : Void
-			client.write dimension_bytes if @width > 0 && @height > 0
+			client.write DIMENSION_BYTES if @width > 0 && @height > 0
 			client.gets 1 # Waiting for transmit only, do not receive any byte: in that case disconnect the client
 		rescue IO::Error # TODO: When server closes raises this error on trying read from socket
 		ensure
