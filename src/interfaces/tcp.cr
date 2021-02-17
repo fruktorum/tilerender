@@ -79,7 +79,7 @@ module Tilerender
 			if wait_first_connection && ( subject = @server.accept? )
 				client = subject.not_nil!
 				@connections << client
-				spawn handle_client client
+				spawn handle_client client, false
 			end
 
 			spawn do
@@ -174,8 +174,8 @@ module Tilerender
 			send_command_to_sockets COLORIZE_BYTES
 		end
 
-		private def handle_client( client : TCPSocket ) : Void
-			client.write DIMENSION_BYTES if @width > 0 && @height > 0
+		private def handle_client( client : TCPSocket, send_dimensions : Bool = true ) : Void
+			client.write DIMENSION_BYTES if send_dimensions && @width > 0 && @height > 0
 			client.gets 1 # Waiting for transmit only, do not receive any byte: in that case disconnect the client
 		rescue IO::Error # TODO: When server closes raises this error on trying read from socket
 		ensure
