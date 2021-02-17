@@ -1,4 +1,4 @@
-FROM <find_an_Alpine_Crystal_or_build_it> as build
+FROM <find_an_Alpine_Crystal_or_build_it> AS build
 WORKDIR /app
 CMD [ "sh" ]
 
