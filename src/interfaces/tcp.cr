@@ -51,6 +51,7 @@ module Tilerender
 			SetBackground
 			SetForeground
 			Empty
+			Text
 		end
 
 		alias BackgroundMap = Hash( Tuple( UInt16, UInt16 ), BaseColor )
@@ -129,6 +130,21 @@ module Tilerender
 
 		def foreground( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
 			socket_colorize_command Command::SetForeground, x, y, red, green, blue if @visible && x < @width && y < @height
+		end
+
+		def text( message : String ) : Void
+			return if message.empty?
+			length = message.bytesize
+
+			raise ArgumentError.new "Message limit exceeded: #{ length } over 65535" if length > 65535
+
+			bytes = Bytes.new length + 3
+			bytes[ 0 ] = Command::Text.value
+			bytes[ 1 ] = ( ( length >> 8 ) & 0xff ).to_u8
+			bytes[ 2 ] = ( length & 0xff ).to_u8
+			message.bytes.each_with_index{ |byte, index| bytes[ index + 3 ] = byte }
+
+			send_command_to_sockets bytes
 		end
 
 		def empty( x : UInt16, y : UInt16 ) : Void

@@ -15,6 +15,8 @@ module Tilerender
 		abstract def foreground( x : UInt16, y : UInt16, color : Color ) : Void
 		abstract def foreground( x : UInt16, y : UInt16, red : UInt8, green : UInt8, blue : UInt8 ) : Void
 
+		abstract def text( message : String ) : Void
+
 		abstract def empty( x : UInt16, y : UInt16 ) : Void
 		abstract def flush : Void
 

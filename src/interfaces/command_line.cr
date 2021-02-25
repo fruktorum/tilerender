@@ -93,6 +93,13 @@ module Tilerender
 			subject x, y, color if @visible && x < @width && y < @height
 		end
 
+		def text( message : String ) : Void
+			return if message.empty?
+			length = message.bytesize
+			raise ArgumentError.new "Message limit exceeded: #{ length } over 65535" if length > 65535
+			print "#{ message }\n"
+		end
+
 		def empty( x : UInt16, y : UInt16 ) : Void
 			return unless @visible
 			color = @background[ { x, y } ]?

@@ -541,6 +541,34 @@ describe Tilerender::CommandLine do
 		end
 	end
 
+	describe "#text" do
+		it "does not send enything" do
+			interface = create_interface
+			interface.text ""
+			interface.stdout_buffer.should eq( "" )
+		end
+
+		it "sends short message" do
+			interface = create_interface
+			interface.text "abc"
+			interface.stdout_buffer.should eq( "abc\n" )
+		end
+
+		it "sends long message" do
+			interface = create_interface
+			text = "a" * 65535
+
+			interface.text text
+			interface.stdout_buffer.should eq( text + "\n" )
+		end
+
+		it "raises error" do
+			interface = create_interface
+			text = "a" * 65536
+			expect_raises( ArgumentError, "Message limit exceeded: 65536 over 65535" ){ interface.text text }
+		end
+	end
+
 	describe "#empty" do
 		context "without entity" do
 			it "clears cell" do

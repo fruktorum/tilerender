@@ -133,6 +133,62 @@ describe Tilerender::TCP do
 		end
 	end
 
+	describe "#text" do
+		it "sends short message" do
+			interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 1753_u16, 12705_u16 )
+			client = TCPSocket.new "localhost", 9999
+			sleep 0.001 # Async wait for connections update
+
+			client.read Bytes.new( 5 )
+
+			interface.text "abc"
+
+			data = Bytes.new 7, 250
+			client.read data
+			client.close
+			interface.close_connection
+
+			data.should eq( Bytes[ 6, 0, 3, 97, 98, 99, 250 ] )
+		end
+
+		it "sends long message" do
+			interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 1753_u16, 12705_u16 )
+			client = TCPSocket.new "localhost", 9999
+			sleep 0.001 # Async wait for connections update
+
+			client.read Bytes.new( 5 )
+
+			interface.text "a" * 65535
+
+			data = Bytes.new 65539, 177
+			result = Bytes.new 65539, 97
+			result[ 0 ] = 6
+			result[ 1 ] = 255
+			result[ 2 ] = 255
+			result[ -1 ] = 177
+
+			client.read data
+			client.close
+			interface.close_connection
+
+			data.should eq( result )
+		end
+
+		it "raises error" do
+			interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 1753_u16, 12705_u16 )
+			client = TCPSocket.new "localhost", 9999
+			sleep 0.001 # Async wait for connections update
+
+			client.read Bytes.new( 5 )
+
+			text = "a" * 65536
+			expect_raises( ArgumentError, "Message limit exceeded: 65536 over 65535" ){ interface.text text }
+
+			client.close
+			interface.close_connection
+		end
+	end
+
 	describe "#empty" do
 		it "sends empty command" do
 			interface = Tilerender::TCP.new( 9999, wait_first_connection: false ).tap &.dimensions( 1753_u16, 12705_u16 )
