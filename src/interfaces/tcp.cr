@@ -3,45 +3,45 @@ require "socket"
 module Tilerender
   class TCP < Base
     private macro send_command_to_sockets(bytes)
-			@connections.each{|connection|
-				begin
-					connection.write( {{ bytes }} )
-				rescue IO::Error
-					connection.close
-					@connections.delete connection
-				end
-			}
-		end
+      @connections.each{|connection|
+        begin
+          connection.write( {{ bytes }} )
+        rescue IO::Error
+          connection.close
+          @connections.delete connection
+        end
+      }
+    end
 
     private macro pick_color(color)
-			case {{ color }}
-				when .black? then { 0_u8, 0_u8, 0_u8 }
-				when .blue? then { 0_u8, 0_u8, 184_u8 }
-				when .cyan? then { 0_u8, 255_u8, 255_u8 }
-				when .gray? then { 128_u8, 128_u8, 128_u8 }
-				when .green? then { 0_u8, 192_u8, 0_u8 }
-				when .lime? then { 191_u8, 255_u8, 0_u8 }
-				when .magenta? then { 255_u8, 0_u8, 255_u8 }
-				when .maroon? then { 128_u8, 0_u8, 0_u8 }
-				when .navy? then { 0_u8, 0_u8, 128_u8 }
-				when .orange? then { 255_u8, 165_u8, 0_u8 }
-				when .pink? then { 255_u8, 192_u8, 203_u8 }
-				when .purple? then { 128_u8, 0_u8, 128_u8 }
-				when .red? then { 255_u8, 0_u8, 0_u8 }
-				when .silver? then { 192_u8, 192_u8, 192_u8 }
-				when .teal? then { 0_u8, 128_u8, 128_u8 }
-				when .white? then { 255_u8, 255_u8, 255_u8 }
-				when .yellow? then { 255_u8, 255_u8, 0_u8 }
-				else raise ArgumentError.new "Should not be here"
-			end
-		end
+      case {{ color }}
+        when .black? then { 0_u8, 0_u8, 0_u8 }
+        when .blue? then { 0_u8, 0_u8, 184_u8 }
+        when .cyan? then { 0_u8, 255_u8, 255_u8 }
+        when .gray? then { 128_u8, 128_u8, 128_u8 }
+        when .green? then { 0_u8, 192_u8, 0_u8 }
+        when .lime? then { 191_u8, 255_u8, 0_u8 }
+        when .magenta? then { 255_u8, 0_u8, 255_u8 }
+        when .maroon? then { 128_u8, 0_u8, 0_u8 }
+        when .navy? then { 0_u8, 0_u8, 128_u8 }
+        when .orange? then { 255_u8, 165_u8, 0_u8 }
+        when .pink? then { 255_u8, 192_u8, 203_u8 }
+        when .purple? then { 128_u8, 0_u8, 128_u8 }
+        when .red? then { 255_u8, 0_u8, 0_u8 }
+        when .silver? then { 192_u8, 192_u8, 192_u8 }
+        when .teal? then { 0_u8, 128_u8, 128_u8 }
+        when .white? then { 255_u8, 255_u8, 255_u8 }
+        when .yellow? then { 255_u8, 255_u8, 0_u8 }
+        else raise ArgumentError.new "Should not be here"
+      end
+    end
 
     private macro set_coordinates(bytes, x, y)
-			{{ bytes }}[ 1 ] = ( ( {{ x }} >> 8 ) & 0xff ).to_u8
-			{{ bytes }}[ 2 ] = ( {{ x }} & 0xff ).to_u8
-			{{ bytes }}[ 3 ] = ( ( {{ y }} >> 8 ) & 0xff ).to_u8
-			{{ bytes }}[ 4 ] = ( {{ y }} & 0xff ).to_u8
-		end
+      {{ bytes }}[ 1 ] = ( ( {{ x }} >> 8 ) & 0xff ).to_u8
+      {{ bytes }}[ 2 ] = ( {{ x }} & 0xff ).to_u8
+      {{ bytes }}[ 3 ] = ( ( {{ y }} >> 8 ) & 0xff ).to_u8
+      {{ bytes }}[ 4 ] = ( {{ y }} & 0xff ).to_u8
+    end
 
     enum Command : UInt8
       Reset
