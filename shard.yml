@@ -1,6 +1,8 @@
 name: tilerender
-version: 0.1.0
-crystal: 1.1.0-dev
+description: A simple graphics interface to display colorized squares
+
+version: 1.0.0
+crystal: 1.2.2
 
 authors:
   - SlayerShadow <gawfast@gmail.com>

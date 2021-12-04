@@ -9,7 +9,7 @@ Tilerender: a simple graphics interface to display colorized squares via command
    ```yaml
    dependencies:
      tilerender:
-       github: SlayerShadow/tilerender
+       github: fruktorum/tilerender
    ```
 
 2. Run `shards install`
@@ -135,7 +135,7 @@ It is recommended to use Docker and latest Crystal language compilation.
 
 ## Contributing
 
-1. Clone it
+1. Fork it (<https://github.com/fruktorum/tilerender/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)

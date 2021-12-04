@@ -4,7 +4,6 @@
 /.shards/
 
 core
-Dockerfile
 shard.lock
 Thumbs.db
 
