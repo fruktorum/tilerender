@@ -33,6 +33,8 @@ require "tilerender"
 
 * To use TCP socket interface:
 
+   There is websocket client to work with: please see [TileRender Client](https://github.com/fruktorum/tilerender-client).
+
    ```crystal
    require "tilerender/interfaces/tcp"
    interface = Tilerender::TCP.new port: 3248, wait_first_connection: true
