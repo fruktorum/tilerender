@@ -202,7 +202,7 @@ describe Tilerender::TCP do
       client.close
       interface.close_connection
 
-      data.should eq(Bytes[7, 255, 255, 255, 255, 255, 255, 255, 255, 255])
+      data.should eq(Bytes[7, 0, 255, 255, 255, 255, 255, 255, 255, 255])
     end
   end
 

@@ -56,7 +56,6 @@ module Tilerender
 
     alias BackgroundMap = Hash(Tuple(UInt16, UInt16), BaseColor)
 
-    SINGLE          = Bytes.new 1
     DIMENSION_BYTES = Bytes.new 5, Command::UpdateDimensions.value
     EMPTY_BYTES     = Bytes.new 5, Command::Empty.value
     COLORIZE_BYTES  = Bytes.new 8
@@ -77,6 +76,7 @@ module Tilerender
       @height = 0
 
       @background = BackgroundMap.new
+      @draw_lines = true
 
       if wait_first_connection && (subject = @server.accept?)
         client = subject.not_nil!
@@ -107,16 +107,12 @@ module Tilerender
     def reset : Void
       @background.clear
       return unless @visible
-
-      SINGLE[0] = Command::Reset.value
-      send_command_to_sockets SINGLE
+      send_command_to_sockets Bytes.new(1, Command::Reset.value)
     end
 
     def clear : Void
       return unless @visible
-
-      SINGLE[0] = Command::Clear.value
-      send_command_to_sockets SINGLE
+      send_command_to_sockets Bytes.new(1, Command::Clear.value)
     end
 
     def background(x : UInt16, y : UInt16, color : Color) : Void
@@ -155,8 +151,8 @@ module Tilerender
     end
 
     def toggle_lines : Void
-      SINGLE[0] = Command::ToggleLines.value
-      send_command_to_sockets SINGLE
+      @draw_lines = !@draw_lines
+      send_command_to_sockets Bytes[Command::ToggleLines.value, @draw_lines ? 1 : 0]
     end
 
     def empty(x : UInt16, y : UInt16) : Void
@@ -204,8 +200,8 @@ module Tilerender
 
     private def handle_client(client : TCPSocket, send_dimensions : Bool = true) : Void
       client.write DIMENSION_BYTES if send_dimensions && @width > 0 && @height > 0
+      client.write Bytes[Command::ToggleLines.value, 0] unless @draw_lines
       client.gets 1 # Waiting for transmit only, do not receive any byte: in that case disconnect the client
-
 
     rescue IO::Error # TODO: When server closes raises this error on trying read from socket
     ensure
