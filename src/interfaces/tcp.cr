@@ -51,10 +51,12 @@ module Tilerender
       SetForeground
       Empty
       Text
+      ToggleLines
     end
 
     alias BackgroundMap = Hash(Tuple(UInt16, UInt16), BaseColor)
 
+    SINGLE          = Bytes.new 1
     DIMENSION_BYTES = Bytes.new 5, Command::UpdateDimensions.value
     EMPTY_BYTES     = Bytes.new 5, Command::Empty.value
     COLORIZE_BYTES  = Bytes.new 8
@@ -104,11 +106,17 @@ module Tilerender
 
     def reset : Void
       @background.clear
-      send_command_to_sockets Bytes.new(1) { Command::Reset.value } if @visible
+      return unless @visible
+
+      SINGLE[0] = Command::Reset.value
+      send_command_to_sockets SINGLE
     end
 
     def clear : Void
-      send_command_to_sockets Bytes.new(1) { Command::Clear.value } if @visible
+      return unless @visible
+
+      SINGLE[0] = Command::Clear.value
+      send_command_to_sockets SINGLE
     end
 
     def background(x : UInt16, y : UInt16, color : Color) : Void
@@ -144,6 +152,11 @@ module Tilerender
       message.bytes.each_with_index { |byte, index| bytes[index + 3] = byte }
 
       send_command_to_sockets bytes
+    end
+
+    def toggle_lines : Void
+      SINGLE[0] = Command::ToggleLines.value
+      send_command_to_sockets SINGLE
     end
 
     def empty(x : UInt16, y : UInt16) : Void

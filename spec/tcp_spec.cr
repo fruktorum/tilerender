@@ -189,6 +189,23 @@ describe Tilerender::TCP do
     end
   end
 
+  describe "#toggle_lines" do
+    it "sends toggle lines command" do
+      interface = Tilerender::TCP.new 9999, wait_first_connection: false
+      client = TCPSocket.new "localhost", 9999
+      sleep 0.001 # Async wait for connections update
+
+      interface.toggle_lines
+
+      data = Bytes.new 10, 255
+      client.read data
+      client.close
+      interface.close_connection
+
+      data.should eq(Bytes[7, 255, 255, 255, 255, 255, 255, 255, 255, 255])
+    end
+  end
+
   describe "#empty" do
     it "sends empty command" do
       interface = Tilerender::TCP.new(9999, wait_first_connection: false).tap &.dimensions(1753_u16, 12705_u16)
