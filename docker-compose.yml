@@ -1,14 +1,10 @@
-version: '3.9'
-
 services:
   dev:
     image: tilerender
-    build:
-      context: .
-      target: build
-    ports: [ '3248:3248' ]
+    build: .
+    ports: [ 3248:3248 ]
     networks: [ websockify ]
-    volumes: [ '.:/app' ]
+    volumes: [ .:/app ]
     logging:
       driver: none
     environment:
