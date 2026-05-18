@@ -1,4 +1,4 @@
-FROM crystallang/crystal:1.13.1-alpine
+FROM crystallang/crystal:1.20.2-alpine
 WORKDIR /app
 CMD [ "sh" ]
 
